@@ -1,9 +1,23 @@
-# tof_sim — 합성 ToF 데이터로 자세·졸음 분류기 학습
+# tof-sim — 합성 ToF 데이터로 자세·졸음 분류기 학습
 
 책상 앞 사람을 **MuJoCo** 관절 모델로 만들고, 가상 VL53L8CX(또는 VL53L9CX 축소 격자)로 읽어
 **정답이 붙은 프레임을 끝없이** 만든다. 그 프레임으로 작은 스트리밍 분류기를 계속 학습한다.
-펌웨어 규칙 판정(`firmware/.../preprocess/tof/TofPosture`)도 같은 데이터로 채점해 둘을 비교한다.
+펌웨어 규칙 판정(`rules/TofPosture`)도 같은 데이터로 채점해 둘을 비교한다.
 MuJoCo 뷰어로 사람이 움직이는 모습과 센서 빔이 맞는 자리를 직접 볼 수 있다.
+
+DESKMATE 팀 레포(`2026ESWContest_smart_TEAMMATE`)의 `dataset/tof_sim` 을 커밋 기록째 떼어낸 독립 레포다.
+학습 서버에서는 이 레포만 받으면 된다.
+
+```
+git clone <이 레포 주소> tof-sim && cd tof-sim
+bash setup.sh                                   # 리눅스: 가상환경·패키지 설치 (한 번)
+sbatch --export=ALL,RUN=ubai_v1,TOTAL_H=336 slurm_train.sh   # Slurm (UBAI cpu2 기준으로 맞춰 둠)
+bash run_forever.sh ubai_v1 336                 # Slurm 이 아닌 서버·PC
+```
+
+`rules/TofPosture.{h,cpp}` 는 팀 레포 `firmware/esp32_sensor_node/src/preprocess/tof/` 의 사본이다
+(팀 레포 커밋 250f801 기준). 팀 레포의 최신 펌웨어로 채점하려면 `TOFPOSTURE_SRC=<그 폴더>` 를 주고
+`tools/rule_replay(.exe)` 를 지운 뒤 `eval_rules.py` 를 실행한다.
 
 > **시뮬 결과는 실제 성능이 아니다.** 센서 잡음·반사율·사람 움직임 모델은 그럴듯한 가정이고 실측으로
 > 맞추지 않았다. 실제 판단은 실측 데이터(`depth_teacher` 라벨 + 동시 녹화)로 한다(아래 "실측으로 확인").
